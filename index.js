@@ -25,12 +25,11 @@ let orginalShortUrl = mongoose.model('orginalShortUrl', urlSchema);
 
 async function saveUrl(orginal_url) {
   let answer;
-  await orginalShortUrl.find({}).sort({ short_url: -1 }).limit(1).exec().then((data) => {
-
-    answer = data[0].short_url + 1;
-
-  }).catch((err) => console.log(err))
-
+  await orginalShortUrl.find({}).sort({ short_url: -1 }).limit(1).exec().then((data)=>{
+      answer=data[0].short_url+1;
+    
+  }).catch((err)=>console.log(err))
+  
   let url = new orginalShortUrl({
     orginal_url: orginal_url,
     short_url: answer
@@ -72,26 +71,28 @@ app.post('/api/shorturl', async function(req, res) {
 
   try {
     let url = new URL(req.body.url)
+    if (url.protocol != "http:" && url.protocol != "https:") {
+      throw new Error("Invalid URL")
+    }
+    
     let short_url_start = await isExistUrl(url.href)
 
     if (short_url_start != 0) {
       console.log("exist")
     }
     else {
-      console.log("short_url_start_else:", short_url_start)
       short_url_start = await saveUrl(url.href)
-
     }
 
     res.send({
-      orginal_url: url.origin,
+      orginal_url: url.href,
       short_url: short_url_start
     })
 
 
   }
   catch (e) {
-    res.send(JSON.stringify({ error: 'Invalid URL' }))
+    res.send({ error: 'Invalid URL' })
   }
 })
 
@@ -108,14 +109,10 @@ app.get('/api/shorturl/:short_url', async function(req, res) {
   if (orginal_url != 0) {
     res.redirect(orginal_url)
   }
-  else res.send(JSON.stringify({ error: "No short URL found for the given input" }))
+  else res.send({ error: "No short URL found for the given input" })
 })
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
 });
 
-
-app.listen(port, function() {
-  console.log(`Listening on port ${port}`);
-});
