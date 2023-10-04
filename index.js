@@ -25,37 +25,33 @@ let orginalShortUrl = mongoose.model('orginalShortUrl', urlSchema);
 
 async function saveUrl(orginal_url) {
   let answer;
-  await orginalShortUrl.find({}).sort().limit(1).exec().then((data)=>{
-      console.log("datasssssssssssssssssss:",data)
-      answer=data[0].short_url+1;
-    
-  }).catch((err)=>console.log(err))
-    
-  
-  console.log("answer:",answer)
-  
+  await orginalShortUrl.find({}).sort().limit(1).exec().then((data) => {
+
+    answer = data[0].short_url + 1;
+
+  }).catch((err) => console.log(err))
+
   let url = new orginalShortUrl({
     orginal_url: orginal_url,
-    short_url:answer 
+    short_url: answer
   })
-  url.save().then((data)=>{
+  url.save().then((data) => {
     console.log(data)
-  }).catch((err)=>{
-    console.log("burası",err)
+  }).catch((err) => {
+    console.log(err)
   })
   return answer;
 }
 
-async function isExistUrl(orginal_url_newOne){
+async function isExistUrl(orginal_url_newOne) {
   let result;
-  await orginalShortUrl.find({orginal_url: orginal_url_newOne}).then((data)=>{
-    result=data[0].short_url;
-  }).catch((err)=>{ 
-    console.log(err)//böyle olması gerekir
-    result=0;
+  await orginalShortUrl.find({ orginal_url: orginal_url_newOne }).then((data) => {
+    result = data[0].short_url;
+  }).catch((err) => {
+    console.log(err)
+    result = 0;
   })
-  if(result!=0){
-    console.log("data1111111111:",result)
+  if (result != 0) {
     return result;
   }
   else return 0;
@@ -72,53 +68,53 @@ app.get('/api/hello', function(req, res) {
   res.json({ greeting: 'hello API' });
 });
 
-app.post('/api/shorturl',async function(req, res) {
-  
+app.post('/api/shorturl', async function(req, res) {
+
   try {
     let url = new URL(req.body.url)
-    let short_url_start = await isExistUrl(url.href) 
+    let short_url_start = await isExistUrl(url.href)
 
-    
-    console.log("short_url_start1:",short_url_start)
-    
-    if(short_url_start!=0){ 
+    if (short_url_start != 0) {
       console.log("exist")
     }
-    else{
-      console.log("short_url_start_else:",short_url_start)
-      short_url_start=await saveUrl(url.href)
-      
+    else {
+      console.log("short_url_start_else:", short_url_start)
+      short_url_start = await saveUrl(url.href)
+
     }
-    console.log("cevap:", url)
-  
+
     res.send({
       orginal_url: url.origin,
-      short_url:short_url_start
-    }) 
-  
-    
+      short_url: short_url_start
+    })
+
+
   }
   catch (e) {
-    res.send(JSON.stringify({error: 'Invalid URL'}))
+    res.send(JSON.stringify({ error: 'Invalid URL' }))
   }
 })
 
 
-app.get('/api/shorturl/:short_url',async function(req, res) {
-  let short_url=req.params.short_url
+app.get('/api/shorturl/:short_url', async function(req, res) {
+  let short_url = req.params.short_url
   let orginal_url;
-  await orginalShortUrl.find({short_url: short_url}).then((data)=>{
-    orginal_url=data[0].orginal_url;
-  }).catch((err)=>{ 
-    console.log(err)//böyle olması gerekir
-    orginal_url=0;
+  await orginalShortUrl.find({ short_url: short_url }).then((data) => {
+    orginal_url = data[0].orginal_url;
+  }).catch((err) => {
+    console.log(err)
+    orginal_url = 0;
   })
-  if(orginal_url!=0){
-    console.log("data1111111111:",orginal_url)
+  if (orginal_url != 0) {
     res.redirect(orginal_url)
   }
-  else res.send(JSON.stringify({error:"No short URL found for the given input"}))
+  else res.send(JSON.stringify({ error: "No short URL found for the given input" }))
 })
+
+app.listen(port, function() {
+  console.log(`Listening on port ${port}`);
+});
+
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
