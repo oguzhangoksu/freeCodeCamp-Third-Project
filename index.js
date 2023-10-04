@@ -25,7 +25,7 @@ let orginalShortUrl = mongoose.model('orginalShortUrl', urlSchema);
 
 async function saveUrl(orginal_url) {
   let answer;
-  await orginalShortUrl.find({}).sort().limit(1).exec().then((data) => {
+  await orginalShortUrl.find({}).sort({ short_url: -1 }).limit(1).exec().then((data) => {
 
     answer = data[0].short_url + 1;
 
